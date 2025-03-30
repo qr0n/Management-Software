@@ -13,3 +13,4 @@
 [{'item_code': '10', 'name': 'samsung the company', 'quantity': 1, 'price': 10, 'profit_percentage': 10}]
 [{'item_code': 'samsung', 'name': 'samsung the company', 'quantity': 1, 'price': 10, 'profit_percentage': 10}]
 [{'item_code': 'samsung', 'name': 'samsung the company', 'quantity': 1, 'price': 10, 'profit_percentage': 10}]
+[{'item_code': '1', 'name': 'Labour', 'quantity': 23, 'price': 40, 'profit_percentage': 10}, {'item_code': '2', 'name': 'Nails and screws', 'quantity': 50, 'price': 0.8, 'profit_percentage': 3}, {'item_code': '3', 'name': 'Paint and Plywood', 'quantity': 1, 'price': 1000, 'profit_percentage': 4}, {'item_code': '4', 'name': 'Imported wall tiles', 'quantity': 40, 'price': 14, 'profit_percentage': 5}, {'item_code': '5', 'name': 'Freight', 'quantity': 1, 'price': 150, 'profit_percentage': 6}, {'item_code': '6', 'name': 'Sub-contractor Tile-It', 'quantity': 1, 'price': 225, 'profit_percentage': 7}]

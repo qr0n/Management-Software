@@ -2,26 +2,37 @@ from flask import Flask, render_template, request, jsonify
 import os
 import PIL.Image
 from werkzeug.utils import secure_filename
-import mysql.connector
 import google.genai as genai
 import json
 from collections import defaultdict
-from functions import Inventory, clean_json
+from functions import clean_json
 
 app = Flask(__name__)
 
-db_config = {
-    "host": "localhost",
-    "user": "root",
-    "password": "iron",
-    "database": "inventory",
-}
+# Replace MySQL with JSON file handling
+INVENTORY_FILE = "data/inventory.json"
 
-conn = mysql.connector.connect(**db_config)
-cursor = conn.cursor()
+# Ensure data directory exists
+os.makedirs("data", exist_ok=True)
 
-genai.configure(api_key="")
-model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+# Create inventory file if it doesn't exist
+if not os.path.exists(INVENTORY_FILE):
+    with open(INVENTORY_FILE, "w") as f:
+        json.dump({"items": []}, f)
+
+
+def get_inventory_data():
+    with open(INVENTORY_FILE, "r") as f:
+        return json.load(f)
+
+
+def save_inventory_data(data):
+    with open(INVENTORY_FILE, "w") as f:
+        json.dump(data, f, indent=4)
+
+
+model = genai.Client(api_key="").models
+# model = genai.Client(model_name="gemini-1.5-flash")
 
 UPLOAD_FOLDER = "static/invoices"
 if not os.path.exists(UPLOAD_FOLDER):
@@ -37,42 +48,98 @@ def index():
 
 @app.route("/get_inventory", methods=["GET"])
 def get_inventory():
-    return Inventory.Display.get_inventory()
+    inventory = get_inventory_data()
+    return jsonify(inventory["items"])
 
 
 @app.route("/add_item", methods=["POST"])
 def add_item():
     data = request.json
-    return Inventory.Management.add_item(data=data)
+    try:
+        inventory = get_inventory_data()
+        new_item = {
+            "item_code": data["code"],
+            "item_name": data["name"],
+            "item_quantity": data["quantity"],
+            "cost_per_item": data["cost"],
+            "profit_percentage": data["profit"],
+        }
+        inventory["items"].append(new_item)
+        save_inventory_data(inventory)
+        return jsonify({"message": "Item added successfully"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/remove_item", methods=["POST"])
 def remove_item():
     data = request.json
-    return Inventory.Management.remove_item(data=data)
+    try:
+        inventory = get_inventory_data()
+        items = inventory["items"]
+        item_name = data["name"]
+        remove_quantity = int(data["quantity"])
+
+        for item in items:
+            if item["item_name"] == item_name:
+                if remove_quantity >= item["item_quantity"]:
+                    items.remove(item)
+                    message = f"Item '{item_name}' removed from inventory."
+                else:
+                    item["item_quantity"] -= remove_quantity
+                    message = f"Removed {remove_quantity} of '{item_name}'. New stock: {item['item_quantity']}"
+
+                save_inventory_data(inventory)
+                return jsonify({"message": message}), 200
+
+        return jsonify({"error": "Item not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/edit_item", methods=["POST"])
 def edit_item():
     data = request.json
-    return Inventory.Management.edit_item(data=data)
+    try:
+        inventory = get_inventory_data()
+        items = inventory["items"]
+        item_code = data["item_code"]
+
+        for item in items:
+            if item["item_code"] == item_code:
+                item["item_name"] = data["name"]
+                item["item_quantity"] = int(data["quantity"])
+                item["cost_per_item"] = float(data["cost"])
+                item["profit_percentage"] = float(data["profit"])
+
+                save_inventory_data(inventory)
+                return jsonify({"message": f"Item updated successfully"}), 200
+
+        return jsonify({"error": "Item not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/delete_item", methods=["POST"])
 def delete_item():
     data = request.json
     try:
-        item_code = data["item_code"]  # Identify item by code
+        inventory = get_inventory_data()
+        items = inventory["items"]
+        item_code = data["item_code"]
 
-        with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM stock WHERE item_code = %s", (item_code,))
-            conn.commit()
+        for item in items:
+            if item["item_code"] == item_code:
+                items.remove(item)
+                save_inventory_data(inventory)
+                return (
+                    jsonify(
+                        {"message": f"Item with code {item_code} deleted successfully"}
+                    ),
+                    200,
+                )
 
-        return (
-            jsonify({"message": f"Item with code {item_code} deleted successfully"}),
-            200,
-        )
-
+        return jsonify({"error": "Item not found"}), 404
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -93,11 +160,12 @@ def import_invoice():
     # Send image to Gemini for text extraction
     img_file = PIL.Image.open(file_path)
     response = model.generate_content(
-        [
+        contents=[
             'Extract the data from this image and structure it in the following JSON dictionary: {"data" : [{"name" : <STRING>, "quantity" : <INTEGER>, "price" : <FLOAT>}]}',
             img_file,
         ],
-        generation_config={"temperature": 0},
+        model="gemini-2.0-flash",
+        config={"temperature": 0},
     )
 
     # Aggregate items by name
@@ -126,49 +194,29 @@ def confirm_import():
         return jsonify({"error": "No items to import"}), 400
 
     try:
-        with conn.cursor() as cursor:
-            for item in items:
-                # Check if the item already exists in the inventory
-                cursor.execute(
-                    "SELECT item_quantity FROM stock WHERE item_code = %s",
-                    (item["item_code"],),
+        inventory = get_inventory_data()
+        existing_items = {item["item_code"]: item for item in inventory["items"]}
+
+        for item in items:
+            if item["item_code"] in existing_items:
+                # Update existing item
+                existing_item = existing_items[item["item_code"]]
+                existing_item["item_quantity"] += item["quantity"]
+                existing_item["cost_per_item"] = item["price"]
+                existing_item["profit_percentage"] = item["profit_percentage"]
+            else:
+                # Add new item
+                inventory["items"].append(
+                    {
+                        "item_code": item["item_code"],
+                        "item_name": item["name"],
+                        "item_quantity": item["quantity"],
+                        "cost_per_item": item["price"],
+                        "profit_percentage": item["profit_percentage"],
+                    }
                 )
-                result = cursor.fetchone()
 
-                if result:
-                    # If the item exists, update its quantity
-                    current_quantity = result[0]
-                    new_quantity = current_quantity + item["quantity"]
-                    cursor.execute(
-                        """
-                        UPDATE stock 
-                        SET item_quantity = %s, cost_per_item = %s, profit_percentage = %s
-                        WHERE item_code = %s
-                        """,
-                        (
-                            new_quantity,
-                            item["price"],
-                            item["profit_percentage"],
-                            item["item_code"],
-                        ),
-                    )
-                else:
-                    # If the item does not exist, insert it as a new item
-                    cursor.execute(
-                        """
-                        INSERT INTO stock (item_code, item_name, item_quantity, cost_per_item, profit_percentage)
-                        VALUES (%s, %s, %s, %s, %s);
-                        """,
-                        (
-                            item["item_code"],
-                            item["name"],
-                            item["quantity"],
-                            item["price"],
-                            item["profit_percentage"],
-                        ),
-                    )
-
-        conn.commit()
+        save_inventory_data(inventory)
 
         # Log successfully imported items
         with open("log.txt", "a") as log:
