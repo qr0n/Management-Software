@@ -3,7 +3,7 @@ import os
 import PIL.Image
 from werkzeug.utils import secure_filename
 import mysql.connector
-import google.generativeai as genai
+import google.genai as genai
 import json
 from collections import defaultdict
 from functions import Inventory, clean_json
