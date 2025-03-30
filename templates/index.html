@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style.css">
+    <script src="static/script.js"></script>
+
+
+    <title>Inventory Management</title>
+    <style>
+        /* Your existing styles here */
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Inventory Management</h1>
+        <button class="btn" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        <button class="btn" onclick="openModal('addModal')">Add Item</button>
+        <button class="btn" onclick="openModal('removeModal')">Remove Item</button>
+        <button class="btn" onclick="fetchInventory()">Refresh Inventory</button>
+        <button class="btn" onclick="openModal('importModal')">Import Invoice</button>
+        
+        
+        <table id="inventoryTable">
+            <thead>
+                <tr>
+                    <th>Item Code</th>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Cost Per Item</th>
+                    <th>Profit %</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Inventory items will be dynamically inserted here -->
+            </tbody>
+        </table>
+        
+    </div>
+
+    <div id="modalOverlay" class="modal-overlay"></div>
+    
+    <!-- Add Item Modal -->
+    <div id="addModal" class="modal">
+        <h2>Add Item</h2>
+        <input type="text" id="addCode" placeholder="Item Code">
+        <input type="text" id="addName" placeholder="Item Name">
+        <input type="number" id="addQuantity" placeholder="Stock">
+        <input type="number" id="addCost" placeholder="Cost per Item">
+        <input type="number" id="addProfit" placeholder="Profit %">
+        <button class="btn" onclick="addItem()">Submit</button>
+        <button class="btn" onclick="closeModal('addModal')">Cancel</button>
+    </div>
+
+    <!-- Remove Item Modal -->
+    <div id="removeModal" class="modal">
+        <h2>Remove Item</h2>
+        <input type="text" id="removeName" placeholder="Item Name">
+        <input type="number" id="removeQuantity" placeholder="Quantity to Remove">
+        <button class="btn" onclick="removeItem()">Submit</button>
+        <button class="btn" onclick="closeModal('removeModal')">Cancel</button>
+    </div>
+
+    <!-- Edit Item Modal -->
+    <div id="editModal" class="modal">
+        <h2>Edit Item</h2>
+        <input type="hidden" id="editCode"> <!-- Store the item code -->
+        <label>Item Code (Uneditable)</label>
+        <input type="text" id="editCodeDisplay" disabled>
+        <input type="text" id="editName" placeholder="Item Name">
+        <input type="number" id="editQuantity" placeholder="Quantity">
+        <input type="number" id="editCost" placeholder="Cost per Item">
+        <input type="number" id="editProfit" placeholder="Profit %">
+        <button class="btn btn-primary" onclick="saveEdit()">Save</button>
+        <button class="btn btn-danger" onclick="closeModal('editModal')">Cancel</button>
+    </div>
+    <!-- Delete Item Modal -->
+    <div id="deleteModal" class="modal">
+        <h2>Confirm Deletion</h2>
+        <p>Are you sure you want to delete <span id="deleteItemName"></span>?</p>
+        <input type="hidden" id="deleteItemCode">
+        <button class="btn btn-danger" onclick="deleteItem()">Delete</button>
+        <button class="btn" onclick="closeModal('deleteModal')">Cancel</button>
+    </div>
+
+    <!-- Import Invoice Modal -->
+    <div id="importModal" class="modal">
+        <input type="file" id="invoiceInput" accept="image/*">
+        <button class="btn btn-success" onclick="importInvoice()">Upload</button>
+        <button class="btn btn-secondary" onclick="closeModal('importModal')">Cancel</button>
+    </div>
+
+    <!-- Review Extracted Data Modal -->
+    <!-- <div id="reviewModal" class="modal">
+        <h2>Review Extracted Data</h2>
+        <table id="reviewTable">
+            <thead>
+                <tr>
+                    <th>Item Code (INPUT)</th>
+                    <th>Item Name</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Profit %</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button class="btn btn-success" onclick="confirmImport()">Confirm</button>
+        <button class="btn btn-secondary" onclick="closeModal('reviewModal')">Cancel</button>
+         -->
+
+    <div id="reviewModal" class="modal">
+    <h2>Review Extracted Data</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item Code (INPUT)</th>
+                <th>Item Name</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Profit %</th>
+            </tr>
+        </thead>
+        <tbody id="importItemsTable">
+        </tbody>
+    </table>
+    <button class="btn btn-success" onclick="confirmImport()">Confirm</button>
+    <button class="btn btn-secondary" onclick="closeModal('reviewModal')">Cancel</button>
+        
+    
+</div>
+</body>
+</html>

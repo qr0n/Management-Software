@@ -1,0 +1,177 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --btn-bg: #007bff;
+    --btn-text: #ffffff;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 20px;
+    overflow: auto;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+   /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+}
+
+.btn {
+    padding: 10px 15px;
+    border: none;
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.dark-mode {
+    --bg-color: #121212;
+    --text-color: #ffffff;
+    --btn-bg: #1e90ff;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: var(--btn-bg);
+    color: var(--btn-text);
+}
+
+img {
+    max-width: 50px;
+    height: auto;
+    border-radius: 5px;
+}
+/* Ensure modals appear above overlay */
+.modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); */
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 300px;
+    z-index: 10; /* Make sure modal is on top */
+    overflow: auto;
+}
+
+/* Dark mode styling */
+.dark-mode {
+    background: #222;
+    color: #eee;
+}
+
+/* Dark mode modal styling */
+.dark-mode .modal {
+    background: #333;
+    color: #fff;
+    /* box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2); */
+}
+
+
+.dark-mode .modal input {
+    background: #444;
+    color: #fff;
+    border: 1px solid #666;
+}
+
+.dark-mode .modal button {
+    background: #007bff;
+    color: white;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal input {
+    width: 90%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: left;
+}
+
+.modal button {
+    margin-top: 10px;
+    padding: 10px;
+    width: 100%;
+    cursor: pointer;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 5px;
+}
+
+
+/* Background overlay (hidden by default) */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent dark overlay */
+    backdrop-filter: blur(8px); /* Blur effect */
+    display: none;
+    z-index: 5; /* Behind modal but above page content */
+}
+
+/* Dark mode modal overlay */
+.dark-mode .modal-overlay {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+#reviewModal {
+    width: 80vw;  /* 80% of viewport width */
+    max-width: 900px; /* Limit max size */
+    height: 70vh; /* 70% of viewport height */
+    overflow: auto; /* Hide overflow outside */
+}
+
+#reviewModal .modal-content {
+    max-height: 100%; /* Prevent stretching */
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+#reviewModal .modal-body {
+    overflow-y: auto; /* Enable vertical scroll */
+    max-height: 55vh; /* Prevent modal overflow */
+    padding: 1rem;
+    overflow: auto;
+    flex-grow: 1;
+}
